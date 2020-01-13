@@ -17,6 +17,8 @@ import com.amazonaws.wrapper.events.ResourceCreateHandler;
 import com.amazonaws.wrapper.events.ResourceDeleteHandler;
 import com.amazonaws.wrapper.exception.ResourceDoesNotExistException;
 
+import org.checkerframework.checker.objectconstruction.qual.CalledMethodsPredicate;
+
 /**
  * Base class for all amazon related resources This class provide simple methods for creating, searching, deleting any resource from amazon aws
  * 
@@ -220,7 +222,7 @@ public abstract class Ec2Resource<T, O extends Ec2Resource<T, O>> {
      *            - request to send to amazon
      * @return list of actual objects
      */
-    abstract protected List<O> processDescribe(AmazonEC2 amazonEC2, AmazonWebServiceRequest request);
+    abstract protected List<O> processDescribe(AmazonEC2 amazonEC2, @CalledMethodsPredicate("(withOwners || setOwners) || (withImageIds || setImageIds) || (withExecutableUsers || setExecutableUsers)") AmazonWebServiceRequest request);
 
     /**
      * Override this method for getting info of this object from amazon use getEC2() and getId() to implement this behavior
@@ -235,6 +237,7 @@ public abstract class Ec2Resource<T, O extends Ec2Resource<T, O>> {
      * @return
      */
     public List<O> getAll() {
+        // TRUE POSITIVE: gets everything w/o regard for AMI sniping
         return processDescribe(getEc2Connector().getAmazonEC2(), applyFiltersForRequest());
     }
 
@@ -248,6 +251,7 @@ public abstract class Ec2Resource<T, O extends Ec2Resource<T, O>> {
      * @return All founded objects
      */
     public List<O> getFiltered(String key, String... values) {
+        // ESH POSITIVE: doesn't guarantee that the right filters are passed, wraps the API
         return processDescribe(getEc2Connector().getAmazonEC2(), applyFiltersForRequest(new Filter().withName(key).withValues(values)));
     }
 
@@ -259,6 +263,7 @@ public abstract class Ec2Resource<T, O extends Ec2Resource<T, O>> {
      * @return all founded objects
      */
     public List<O> getFiltered(Filter... filters) {
+        // ESH POSITIVE: doesn't guarantee that the right filters are passed, wraps the API
         return processDescribe(getEc2Connector().getAmazonEC2(), applyFiltersForRequest(filters));
     }
 

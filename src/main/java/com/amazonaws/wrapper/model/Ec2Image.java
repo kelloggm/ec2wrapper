@@ -13,6 +13,8 @@ import com.amazonaws.services.ec2.model.Filter;
 import com.amazonaws.services.ec2.model.Image;
 import com.amazonaws.wrapper.exception.ResourceDoesNotExistException;
 
+import org.checkerframework.checker.objectconstruction.qual.CalledMethodsPredicate;
+
 public class Ec2Image extends Ec2Resource<Image, Ec2Image> {
 
     public Ec2Image(Image image) {
@@ -50,7 +52,7 @@ public class Ec2Image extends Ec2Resource<Image, Ec2Image> {
     }
 
     @Override
-    protected List<Ec2Image> processDescribe(AmazonEC2 amazonEC2, AmazonWebServiceRequest request) {
+    protected List<Ec2Image> processDescribe(AmazonEC2 amazonEC2, @CalledMethodsPredicate("(withOwners || setOwners) || (withImageIds || setImageIds) || (withExecutableUsers || setExecutableUsers)") AmazonWebServiceRequest request) {
         List<Ec2Image> images = new ArrayList<Ec2Image>();
         DescribeImagesResult result = amazonEC2.describeImages(((DescribeImagesRequest) request));
         for (Image image : result.getImages()) {
